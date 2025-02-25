@@ -35,6 +35,14 @@ namespace Module_10.Calculator.Actions
             { ActionType.Div, "деление" }
         };
 
+        private static readonly Dictionary<ActionType, Type> ActionsClasses = new()
+        {
+            { ActionType.Add, typeof(Add<>) },
+            { ActionType.Sub, typeof(Sub<>) },
+            { ActionType.Mul, typeof(Mul<>) },
+            { ActionType.Div, typeof(Div<>) }
+        };
+
         /// <summary>
         /// Возвращает символ действия
         /// </summary>
@@ -59,36 +67,6 @@ namespace Module_10.Calculator.Actions
         }
 
         /// <summary>
-        /// Возвращает тип действия по символу
-        /// </summary>
-        /// <param name="action">Символ действия</param>
-        /// <returns>Тип тействия</returns>
-        /// <exception cref="NotImplementedException">Сообщение о неподдерживаемом символе</exception>
-        internal static ActionType GetActionType(this char action)
-        {
-            foreach (KeyValuePair<ActionType, char> item in ActionTypeChar)
-            {
-                if (item.Value.Equals(action)) return item.Key;
-            }
-            throw new NotImplementedException($"Для действия \'{action}\' нет типа.");
-        }
-
-        /// <summary>
-        /// Возвращает тип действия по строке
-        /// </summary>
-        /// <param name="action">Строка действия</param>
-        /// <returns>Тип действия</returns>
-        /// <exception cref="NotImplementedException">Сообщение о неподдерживаемом символе</exception>
-        internal static ActionType GetActionType(this string action)
-        {
-            foreach (KeyValuePair<ActionType, string> item in ActionTypeRussianString)
-            {
-                if (item.Value.Equals(action.ToLower())) return item.Key;
-            }
-            throw new NotImplementedException($"Для действия \'{action}\' нет типа.");
-        }
-
-        /// <summary>
         /// Создает новый экземпляр указанного действия
         /// </summary>
         /// <typeparam name="T">Тип над которым выполняется действие</typeparam>
@@ -97,14 +75,15 @@ namespace Module_10.Calculator.Actions
         /// <exception cref="NotImplementedException">Сообщение о неподдерживаемом действии</exception>
         internal static IAction<T> GetAction<T>(this ActionType action) where T : INumber<T>
         {
-            return action switch
+            // Создаем экземпляр класса через рефлексию
+            if (ActionsClasses.TryGetValue(action, out var actionClass))
             {
-                ActionType.Add => new Add<T>(),
-                ActionType.Sub => new Sub<T>(),
-                ActionType.Mul => new Mul<T>(),
-                ActionType.Div => new Div<T>(),
-                _ => throw new NotImplementedException($"Для действия {action} нет класса.")
-            };
+                // Создаем обобщенный тип, например, Add<T>, Sub<T>, и т.д.
+                var genericType = actionClass.MakeGenericType(typeof(T));
+                // Создаем экземпляр с помощью рефлексии
+                return (IAction<T>)Activator.CreateInstance(genericType)!;
+            }
+            throw new NotImplementedException($"Для действия {action} нет класса.");
         }
     }
 }

@@ -13,14 +13,9 @@ namespace Module_10.Calculator.Services
         internal ILogger? Logger { private get; set; } = null;
 
         /// <summary>
-        /// Список все действий поддерживаемый калькулятором
-        /// </summary>
-        private readonly List<IAction<T>> Actions = [];
-
-        /// <summary>
         /// Список всех методов Calc поддерживаемых действий
         /// </summary>
-        private readonly Dictionary<ActionType, Func<T, T, T>> ActionsCalc = [];
+        private readonly Dictionary<ActionType, Func<T, T, T>> Actions = [];
 
         /// <summary>
         /// Конструктор создающий объект со списком поддерживаемых действий и логгером
@@ -76,10 +71,15 @@ namespace Module_10.Calculator.Services
         /// <param name="action">Новое действие</param>
         internal void AddAction(IAction<T> action)
         {
-            Actions.Add(action);
-            ActionsCalc.Add(action.GetActionType(), action.Calc);
-
-            Logger?.Event($"Добавлено новое действие: {action.GetActionType().GetActionString()}");
+            try
+            {
+                Logger?.Event($"Добавление действия: {action.GetActionType().GetActionString()}");
+                Actions.Add(action.GetActionType(), action.Calc);
+            }
+            catch(ArgumentException ex)
+            {
+                Logger?.Error(ex.Message);
+            }
         }
 
         /// <summary>
@@ -95,29 +95,17 @@ namespace Module_10.Calculator.Services
         /// Доступные действия
         /// </summary>
         /// <returns>Массив доступных действий</returns>
-        internal char[] GetSupportActionChars()
+        internal char[]? GetSupportActionChars()
         {
-            char[] actionsChar = new char[Actions.Count];
-
-            for (int i = 0; i < actionsChar.Length; i++)
+            try
             {
-                try
-                {
-                    actionsChar[i] = Actions[i].GetActionType().GetActionChar();
-                }
-                catch (NotImplementedException ex)
-                {
-                    if (Logger is not null)
-                    {
-                        Logger.Error(ex.Message);
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                return [.. Actions.Keys.ToArray().Select(p => p.GetActionChar())];
             }
-            return actionsChar;
+            catch (NotImplementedException ex)
+            {
+                Logger?.Error(ex.Message);
+                return null;
+            }
         }
 
         /// <summary>
@@ -126,7 +114,7 @@ namespace Module_10.Calculator.Services
         /// <returns>Массив доступных действий</returns>
         internal ActionType[] GetSupportActionTypes()
         {
-            return [.. ActionsCalc.Keys];
+            return [.. Actions.Keys];
         }
 
         /// <summary>
@@ -136,25 +124,22 @@ namespace Module_10.Calculator.Services
         /// <param name="b">Второй аргумент действия</param>
         /// <param name="action">Тип тействия</param>
         /// <returns>Результат действия</returns>
+        /// <exception cref="ArgumentException"></exception>
         internal T? Calc(T a, T b, ActionType action)
         {
             try
             {
-                if (!ActionsCalc.TryGetValue(action, out Func<T, T, T>? value)) throw new ArgumentException($"Калькулятор не поддерживает операцию \"{action.GetActionChar()}\"");
-                Logger?.Event($"Выполняем вычисление: {action.GetActionString()} с аргументами типа {this.GetArgumentType().Name} a={a} и b={b}");
-                return value.Invoke(a, b);
+                
+                if (!Actions.TryGetValue(action, out Func<T, T, T>? value)) throw new ArgumentException($"Калькулятор не поддерживает операцию \"{action.GetActionString()}\"");
+                var res = value.Invoke(a, b);
+
+                Logger?.Event($"Выполняем вычисление: {action.GetActionString()} с аргументами типа {this.GetArgumentType().Name} a={a} и b={b}, где результат={res}");
+                return res;
             }
             catch (ArgumentException ex)
             {
-                if (Logger is not null)
-                {
-                    Logger.Error(ex.Message);
-                    return default;
-                }
-                else
-                {
-                    throw;
-                }
+                Logger?.Error(ex.Message);
+                throw;
             }
         }
 
@@ -171,9 +156,10 @@ namespace Module_10.Calculator.Services
         /// Возвращает описание калькулятора
         /// </summary>
         /// <returns>Строка описания</returns>
+        /// <exception cref="NotImplementedException"></exception>
         internal string GetInfo()
         {
-            return $"Калькулятор выполняет действия \"{String.Join(" ", this.GetSupportActionChars())}\" с аргументами типа {this.GetArgumentType().Name}";
+            return $"Калькулятор выполняет действия \"{String.Join(" ", this.GetSupportActionChars() ?? [])}\" с аргументами типа {this.GetArgumentType().Name}";
         }
     }
 }

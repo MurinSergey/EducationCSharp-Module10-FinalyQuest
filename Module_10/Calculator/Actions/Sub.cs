@@ -6,12 +6,14 @@ namespace Module_10.Calculator.Actions
 {
     internal class Sub<T> : IAction<T> where T : INumber<T>
     {
+
         /// <summary>
         /// Метод выполняет вычитание двух чисел
         /// </summary>
         /// <param name="a">Первый аргумент вычитания</param>
         /// <param name="b">Второй аргумент вычитания</param>
         /// <returns>Результат вычитания</returns>
+        /// <exception cref="ArgumentException"></exception>
         public T Calc(T a, T b)
         {
             try

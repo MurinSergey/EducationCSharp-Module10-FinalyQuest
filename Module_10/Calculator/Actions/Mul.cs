@@ -13,6 +13,7 @@ namespace Module_10.Calculator.Actions
         /// <param name="a">Первый аргумент умножения</param>
         /// <param name="b">Второй аргумент умножения</param>
         /// <returns>Результат умножения</returns>
+        /// <exception cref="ArgumentException"></exception>
         public T Calc(T a, T b)
         {
             try
