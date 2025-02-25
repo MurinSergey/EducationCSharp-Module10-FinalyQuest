@@ -34,7 +34,7 @@ namespace Module_10.Calculator.Services
                 AddAction(_action);
             }
 
-            Logger?.Event(this.GetInfo());
+            Logger?.Event($"Создан калькулятор: {this.GetInfo()}");
         }
 
         /// <summary>
