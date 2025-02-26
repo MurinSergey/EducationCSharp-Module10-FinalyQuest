@@ -1,4 +1,5 @@
 ﻿using Module_10.Calculator.Actions;
+using Module_10.Calculator.Helpers;
 using Module_10.Calculator.Interfaces;
 using System;
 using System.Numerics;
@@ -34,7 +35,7 @@ namespace Module_10.Calculator.Services
                 AddAction(_action);
             }
 
-            Logger?.Event($"Создан калькулятор: {this.GetInfo()}");
+            Logger?.Event(this, $"Создан калькулятор: {this.GetInfo()}");
         }
 
         /// <summary>
@@ -73,17 +74,17 @@ namespace Module_10.Calculator.Services
         {
             try
             {
-                Logger?.Event($"Добавление действия: {action.GetActionType().GetActionString()}");
+                Logger?.Event(this, $"Добавление действия: {action.GetActionType().GetActionString()}");
                 Actions.Add(action.GetActionType(), action.Calc);
             }
             catch(ArgumentException ex)
             {
-                Logger?.Error(ex.Message);
+                Logger?.Error(this, ex.Message);
             }
         }
 
         /// <summary>
-        /// Метод доавляет новое действие
+        /// Метод добавляет новое действие
         /// </summary>
         /// <param name="action">Тип нового действия</param>
         internal void AddAction(ActionType action)
@@ -103,7 +104,7 @@ namespace Module_10.Calculator.Services
             }
             catch (NotImplementedException ex)
             {
-                Logger?.Error(ex.Message);
+                Logger?.Error(this, ex.Message);
                 return null;
             }
         }
@@ -125,7 +126,7 @@ namespace Module_10.Calculator.Services
         /// <param name="action">Тип тействия</param>
         /// <returns>Результат действия</returns>
         /// <exception cref="ArgumentException"></exception>
-        internal T? Calc(T a, T b, ActionType action)
+        internal Result<T> Calc(T a, T b, ActionType action)
         {
             try
             {
@@ -133,13 +134,13 @@ namespace Module_10.Calculator.Services
                 if (!Actions.TryGetValue(action, out Func<T, T, T>? value)) throw new ArgumentException($"Калькулятор не поддерживает операцию \"{action.GetActionString()}\"");
                 var res = value.Invoke(a, b);
 
-                Logger?.Event($"Выполняем вычисление: {action.GetActionString()} с аргументами типа {this.GetArgumentType().Name} a={a} и b={b}, где результат={res}");
-                return res;
+                Logger?.Event(this, $"Выполняем вычисление: {action.GetActionString()} с аргументами типа {this.GetArgumentType().Name} a={a} и b={b}, где результат={res}");
+                return Result<T>.Success(res);
             }
-            catch (ArgumentException ex)
+            catch (Exception ex) when (ex is ArgumentException || ex is NotImplementedException)
             {
-                Logger?.Error(ex.Message);
-                throw;
+                Logger?.Error(this, ex.Message);
+                return Result<T>.Error(ex.Message);
             }
         }
 

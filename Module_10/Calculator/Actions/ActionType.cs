@@ -60,6 +60,7 @@ namespace Module_10.Calculator.Actions
         /// </summary>
         /// <param name="action">Тип действия</param>
         /// <returns>Строка описания действия</returns>
+        /// <exception cref="NotImplementedException"></exception>
         internal static string GetActionString(this ActionType action)
         {
             if (!ActionTypeRussianString.TryGetValue(action, out string? value)) throw new NotImplementedException($"Для действия {action} нет описания");

@@ -12,12 +12,12 @@ namespace Module_10.Calculator.Interfaces
         /// Записывает события
         /// </summary>
         /// <param name="eventMsg">Описание события</param>
-        void Event(string eventMsg);
+        void Event(object sender, string eventMsg);
 
         /// <summary>
         /// Записывает ошибки
         /// </summary>
         /// <param name="errorMsg">Описание ошибки</param>
-        void Error(string errorMsg);
+        void Error(object sender, string errorMsg);
     }
 }

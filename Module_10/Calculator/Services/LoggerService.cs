@@ -9,19 +9,19 @@ namespace Module_10.Calculator.Services
 {
     internal class LoggerService : ILogger
     {
-        public void Error(string errorMsg)
+        public void Error(object sender, string errorMsg)
         {
             Console.BackgroundColor = ConsoleColor.Red;
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine($"ОШИБКА: {errorMsg}");
+            Console.WriteLine($"ОШИБКА в {sender.GetType().Name}: {errorMsg}");
             Console.ResetColor();
         }
 
-        public void Event(string eventMsg)
+        public void Event(object sender, string eventMsg)
         {
             Console.BackgroundColor = ConsoleColor.Blue;
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine($"СОБЫТИЕ: {eventMsg}");
+            Console.WriteLine($"СОБЫТИЕ в {sender.GetType().Name}: {eventMsg}");
             Console.ResetColor();
         }
     }
